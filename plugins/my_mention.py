@@ -18,12 +18,17 @@ def grep_gpustatus(ip):
         if not line and status.poll() is not None:
             break
 
-    print(l)
-    return l
+    if l[0] == '':
+        l.append("Nan")
+    percentage = l[1].replace('\n', '')
+
+    return percentage
 
 def grep_cpustatus(ip):
-    cpucmd = "mpstat"
-    status = subprocess.Popen(cpucmd, shell=True, stdout=subprocess.PIPE)
+    cpucmd = "\"mpstat\""
+    sshcmd = "ssh -o \"ConnectTimeout 1\" -oProxyCommand='ssh -W %h:%p gatelabo' "
+    cmd = sshcmd + ip + cpucmd
+    status = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     l = []
 
     while True:
@@ -33,11 +38,19 @@ def grep_cpustatus(ip):
         if not line and status.poll() is not None:
             break
 
-    _cpustatus = l[-2].replace('\n', '')
-    cpustatus = _cpustatus.split()
-    cstat = cpustatus[-1]
+    print(l)
 
-    return 100.0 - float(cstat)
+    if l[0] == '':
+        stat = "Nan"
+
+    else:
+        _cpustatus = l[-2].replace('\n', '')
+        cpustatus = _cpustatus.split()
+        cstat = cpustatus[-1]
+        _stat = 100.0 - float(cstat)
+        stat = f"{_stat:.2f}" + "%"
+
+    return stat
 
 
 @respond_to('使用状況')
@@ -54,16 +67,9 @@ def mention_func(message):
     
     for ip in IPs:
 
-        gpuline = grep_gpustatus(ip)
-        cpustat = grep_cpustatus(ip)
+        gpustat = grep_gpustatus(ip)
+        cpustat = grep_cpustatus(ip)        
 
-        cpustat = f"{cpustat:.2f}" + "%"
-
-        if gpuline[0] == '':
-            gpuline.append("Nan")
-        percentage = gpuline[1].replace('\n', '')
-        
-
-        table.add_row([ip, cpustat, percentage])
+        table.add_row([ip, cpustat, gpustat])
 
     message.channel.upload_content('GPUstatus.txt', table)
