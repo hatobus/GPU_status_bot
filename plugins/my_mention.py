@@ -15,19 +15,21 @@ def mention_func(message):
     gpustatus_dict = {}
     for ip in IPs:
         cmd = ""
-        sshcmd = "ssh -oProxyCommand='ssh -W %h:%p gatelabo' "
+        sshcmd = "ssh -o \"ConnectTimeout 1\" -oProxyCommand='ssh -W %h:%p gatelabo' "
+        #sshcmd = "ssh -oProxyCommand='ssh -W %h:%p gatelabo' "
         cmd = sshcmd + ip + " \"nvidia-smi --query-gpu=utilization.gpu --format=csv, noheader, nounits\""
-        #cmd = "ls"
         status = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         l = []
         while True:
             line = status.stdout.readline()
             l.append(line.decode('utf-8'))
-
+            
             if not line and status.poll() is not None:
                 break
 
         print(l)
+        if l[0] == '':
+            l.append("Nan")
         percentage = l[1].replace('\n', '')
         gpustatus_dict[ip] = percentage
 
@@ -37,4 +39,4 @@ def mention_func(message):
     for k, v in gpustatus_dict.items():
         table.add_row([k, v])
 
-    message.channel.upload_content('GPUstatus.txt',table)
+    message.channel.upload_content('GPUstatus.txt', table)
