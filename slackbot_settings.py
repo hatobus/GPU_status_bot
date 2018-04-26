@@ -2,8 +2,7 @@ import os
 import settings
 
 
-SlackAPI_Key = os.getenv("SlackAPI_Key")
-MACHINES = os.getenv("machine")
+API_TOKEN = os.getenv("SlackAPI_Key")
 
 DEFAULT_REPLY = "Sorry I'm not understand"
 
