@@ -33,6 +33,6 @@ slackbot==0.5.1
 slacker==0.9.65
 tox==2.9.1
 uritemplate==3.0.0
-urllib3==1.22
+urllib3==1.26.5
 virtualenv==15.1.0
 websocket-client==0.47.0
